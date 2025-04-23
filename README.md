@@ -4,9 +4,9 @@
   <img width="380" height="200" src="https://glama.ai/mcp/servers/1yysyd147h/badge" />
 </a>
 
-A [Model Context Protocol][mcp] (MCP) server for Azure Data Explorer/Eventhouse in Microsoft Fabric.
+A [Model Context Protocol][mcp] (MCP) server for Azure Data Explorer.
 
-This provides access to your Azure Data Explorer/Eventhouse clusters and databases through standardized MCP interfaces, allowing AI assistants to execute KQL queries and explore your data.
+This provides access to your Azure Data Explorer clusters and databases through standardized MCP interfaces, allowing AI assistants to execute KQL queries and explore your data.
 
 [mcp]: https://modelcontextprotocol.io
 
@@ -17,8 +17,6 @@ This provides access to your Azure Data Explorer/Eventhouse clusters and databas
   - [x] List tables in the configured database
   - [x] View table schemas
   - [x] Sample data from tables
-  - [x] Get table statistics/details
-
 - [x] Authentication support
   - [x] Token credential support (Azure CLI, MSI, etc.)
 - [x] Docker containerization support
@@ -124,14 +122,6 @@ To use the containerized server with Claude Desktop, update the configuration to
 ```
 
 This configuration passes the environment variables from Claude Desktop to the Docker container by using the `-e` flag with just the variable name, and providing the actual values in the `env` object.
-
-## Using as a Dev Container / GitHub Codespace
-
-This repository can also be used as a development container for a seamless development experience. The dev container setup is located in the `devcontainer-feature/adx-mcp-server` folder.
-
-For more details, check the [devcontainer README](devcontainer-feature/adx-mcp-server/README.md).
-
-
 
 ## Development
 

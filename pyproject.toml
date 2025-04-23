@@ -1,6 +1,6 @@
 [project]
 name = "adx_mcp_server"
-version = "1.0.6"
+version = "1.0.0"
 description = "MCP server for Azure Data Explorer integration"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -10,6 +10,7 @@ dependencies = [
     "azure-identity",
     "python-dotenv",
     "pyproject-toml>=0.1.0",
+    "markdown>=3.8",
 ]
 
 [project.optional-dependencies]
