@@ -5,11 +5,13 @@ description = "MCP server for Azure Data Explorer integration"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "mcp[cli]",
     "azure-kusto-data",
     "azure-identity",
     "python-dotenv",
     "pyproject-toml>=0.1.0",
+    "fastapi",
+    "fastmcp",
+    "mcp",
 ]
 
 [project.optional-dependencies]

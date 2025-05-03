@@ -1,53 +1,35 @@
 #!/usr/bin/env python
-
-import os
-import json
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass
-
-import dotenv
-from mcp.server.fastmcp import FastMCP
-from azure.identity import DefaultAzureCredential, WorkloadIdentityCredential
+from typing import List, Dict, Any
 from azure.kusto.data import KustoClient, KustoConnectionStringBuilder
-
-dotenv.load_dotenv()
-mcp = FastMCP("Azure Data Explorer MCP")
-
-@dataclass
-class ADXConfig:
-    cluster_url: str
-    database: str
-
-config = ADXConfig(
-    cluster_url=os.environ.get("ADX_CLUSTER_URL", ""),
-    database=os.environ.get("ADX_DATABASE", ""),
-)
+from azure.identity import DefaultAzureCredential
+from .config import config
+from .app import mcp
 
 def get_kusto_client() -> KustoClient:
     # Get tenant and client IDs from environment variables
-    tenant_id = os.environ.get('AZURE_TENANT_ID')
-    client_id = os.environ.get('AZURE_CLIENT_ID')
-    token_file_path = os.environ.get('ADX_TOKEN_FILE_PATH', '/var/run/secrets/azure/tokens/azure-identity-token')
+    # tenant_id = os.environ.get('AZURE_TENANT_ID')
+    # client_id = os.environ.get('AZURE_CLIENT_ID')
+    # token_file_path = os.environ.get('ADX_TOKEN_FILE_PATH', '/var/run/secrets/azure/tokens/azure-identity-token')
     
     # Check if we have the necessary credentials for WorkloadIdentityCredential
-    if tenant_id and client_id:
-        print(f"Using WorkloadIdentityCredential with client_id: {client_id}")
-        try:
-            # Use WorkloadIdentityCredential as the default option
-            credential = WorkloadIdentityCredential(
-                tenant_id=tenant_id,
-                client_id=client_id,
-                token_file_path=token_file_path
-            )
-        except Exception as e:
-            print(f"Error initializing WorkloadIdentityCredential: {str(e)}")
-            print("Falling back to DefaultAzureCredential")
-            credential = DefaultAzureCredential()
-    else:
-        # Fall back to DefaultAzureCredential if tenant_id or client_id is missing
-        print("Missing tenant_id or client_id, using DefaultAzureCredential")
-        credential = DefaultAzureCredential()
-    
+    # tenant_id and client_id:
+    #    print(f"Using WorkloadIdentityCredential with client_id: {client_id}")
+    #    try:
+    #        # Use WorkloadIdentityCredential as the default option
+    #        credential = WorkloadIdentityCredential(
+    #            tenant_id=tenant_id,
+    #            client_id=client_id,
+    #            token_file_path=token_file_path
+    #        )
+    #    except Exception as e:
+    #        print(f"Error initializing WorkloadIdentityCredential: {str(e)}")
+    #        print("Falling back to DefaultAzureCredential")
+    #        credential = DefaultAzureCredential()
+    #else:
+    #    # Fall back to DefaultAzureCredential if tenant_id or client_id is missing
+    #    print("Missing tenant_id or client_id, using DefaultAzureCredential")
+    #    credential = DefaultAzureCredential()
+    credential = DefaultAzureCredential()
     kcsb = KustoConnectionStringBuilder.with_azure_token_credential(
         connection_string=config.cluster_url,
         credential=credential
@@ -119,7 +101,12 @@ async def get_table_details(table_name: str) -> List[Dict[str, Any]]:
     result_set = client.execute(config.database, query)
     return format_query_results(result_set)
 
-
-if __name__ == "__main__":
-    print(f"Starting Azure Data Explorer MCP Server...")
-    mcp.run()
+@mcp.tool(description="Retrieves function details including Body, Parameters")
+async def get_function_details(function_name: str) -> List[Dict[str, Any]]:
+    if not config.cluster_url or not config.database:
+        raise ValueError("Azure Data Explorer configuration is missing. Please set ADX_CLUSTER_URL and ADX_DATABASE environment variables.")
+    
+    client = get_kusto_client()
+    query = f".show function {function_name}"
+    result_set = client.execute(config.database, query)
+    return format_query_results(result_set)
