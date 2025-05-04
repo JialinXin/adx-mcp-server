@@ -3,7 +3,6 @@ import sys
 import dotenv
 from adx_mcp_server.app import app
 from adx_mcp_server.config import config
-from adx_mcp_server import tools, transport
 import uvicorn
 
 def setup_environment() -> bool:

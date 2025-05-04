@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 from typing import List, Dict, Any
+import asyncio
 from azure.kusto.data import KustoClient, KustoConnectionStringBuilder
 from azure.identity import DefaultAzureCredential
+from mcp.server.fastmcp import FastMCP
 from .config import config
-from .app import mcp
+
+mcp = FastMCP("Azure Data Explorer")
 
 def get_kusto_client() -> KustoClient:
     # Get tenant and client IDs from environment variables
@@ -52,13 +55,17 @@ def format_query_results(result_set) -> List[Dict[str, Any]]:
     
     return formatted_results
 
+async def _execute_kusto_query(client, database, query):
+    """Execute a Kusto query in a separate thread to avoid blocking the event loop."""
+    return await asyncio.to_thread(client.execute, database, query)
+
 @mcp.tool(description="Executes a Kusto Query Language (KQL) query against the configured Azure Data Explorer database and returns the results as a list of dictionaries.")
 async def execute_query(query: str) -> List[Dict[str, Any]]:
     if not config.cluster_url or not config.database:
         raise ValueError("Azure Data Explorer configuration is missing. Please set ADX_CLUSTER_URL and ADX_DATABASE environment variables.")
     
     client = get_kusto_client()
-    result_set = client.execute(config.database, query)
+    result_set = await _execute_kusto_query(client, config.database, query)
     return format_query_results(result_set)
 
 @mcp.tool(description="Retrieves a list of all tables available in the configured Azure Data Explorer database, including their names, folders, and database associations.")
@@ -68,7 +75,7 @@ async def list_tables() -> List[Dict[str, Any]]:
     
     client = get_kusto_client()
     query = ".show tables | project TableName, Folder, DatabaseName"
-    result_set = client.execute(config.database, query)
+    result_set = await _execute_kusto_query(client, config.database, query)
     return format_query_results(result_set)
 
 @mcp.tool(description="Retrieves the schema information for a specified table in the Azure Data Explorer database, including column names, data types, and other schema-related metadata.")
@@ -78,7 +85,7 @@ async def get_table_schema(table_name: str) -> List[Dict[str, Any]]:
     
     client = get_kusto_client()
     query = f"{table_name} | getschema"
-    result_set = client.execute(config.database, query)
+    result_set = await _execute_kusto_query(client, config.database, query)
     return format_query_results(result_set)
 
 @mcp.tool(description="Retrieves a random sample of rows from the specified table in the Azure Data Explorer database. The sample_size parameter controls how many rows to return (default: 10).")
@@ -88,7 +95,7 @@ async def sample_table_data(table_name: str, sample_size: int = 10) -> List[Dict
     
     client = get_kusto_client()
     query = f"{table_name} | sample {sample_size}"
-    result_set = client.execute(config.database, query)
+    result_set = await _execute_kusto_query(client, config.database, query)
     return format_query_results(result_set)
 
 @mcp.tool(description="Retrieves table details including TotalRowCount, HotExtentSize")
@@ -98,7 +105,7 @@ async def get_table_details(table_name: str) -> List[Dict[str, Any]]:
     
     client = get_kusto_client()
     query = f".show table {table_name} details"
-    result_set = client.execute(config.database, query)
+    result_set = await _execute_kusto_query(client, config.database, query)
     return format_query_results(result_set)
 
 @mcp.tool(description="Retrieves function details including Body, Parameters")
@@ -108,5 +115,9 @@ async def get_function_details(function_name: str) -> List[Dict[str, Any]]:
     
     client = get_kusto_client()
     query = f".show function {function_name}"
-    result_set = client.execute(config.database, query)
+    result_set = await _execute_kusto_query(client, config.database, query)
     return format_query_results(result_set)
+
+if __name__ == "__main__":
+    # Initialize and run the server
+    mcp.run(transport="sse")

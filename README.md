@@ -1,4 +1,4 @@
-# Azure Data Explorer MCP Server
+# Azure Data Explorer MCP Server using SSE
 
 <a href="https://glama.ai/mcp/servers/1yysyd147h">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/1yysyd147h/badge" />
@@ -18,6 +18,7 @@ This provides access to your Azure Data Explorer/Eventhouse clusters and databas
   - [x] View table schemas
   - [x] Sample data from tables
   - [x] Get table statistics/details
+  - [X] Get function details
 
 - [x] Authentication support
   - [x] Token credential support (Azure CLI, MSI, etc.)
@@ -227,7 +228,33 @@ When adding new features, please also add corresponding tests.
 | `list_tables` | Discovery | List all tables in the configured database |
 | `get_table_schema` | Discovery | Get the schema for a specific table |
 | `sample_table_data` | Discovery | Get sample data from a table with optional sample size |
+| `get_table_details`| |
+| `get_function_details`| |
 
+### Test with MCP Inspector
+
+[MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspector)
+
+Start the tool in local.
+
+```bash
+npx @modelcontextprotocol/inspector node build/index.js
+```
+
+#### Connect to MCP Inspector
+
+1. Configure the connection:
+   - Set Transport Type to `SSE`
+   - Enter URL: http://localhost:8080/sse
+   - Click `Connect`
+
+#### Test the Functions
+
+1. Navigate to `Tools` section
+2. Click `List Tools` to see available functions:
+3. Select a function, e.g. `execute_query`.
+4. Enter required parameters, e.g. `BillingUsage_Daily | take 1`.
+5. Click `Run Tool` to execute
 
 ## License
 

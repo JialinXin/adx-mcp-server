@@ -10,8 +10,8 @@ dependencies = [
     "python-dotenv",
     "pyproject-toml>=0.1.0",
     "fastapi",
-    "fastmcp",
-    "mcp",
+    "mcp[cli]",
+    "unicorn",
 ]
 
 [project.optional-dependencies]
